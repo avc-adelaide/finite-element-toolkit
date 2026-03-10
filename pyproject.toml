@@ -4,7 +4,6 @@ name = "au-fe-template"
 version = "0.1"
 
 dependencies = [
-  "pyvista",
   "matplotlib",
   "jupyter",
 ]

@@ -16,19 +16,17 @@ pixi_install:
 		echo "Pixi already installed."; \
 	fi
 
-pixi_init:
-	@if [ ! -d '.pixi' ]; then \
-		echo 'Initialising pixi project...'; \
-		pixi init . && \
-		pixi project channel add conda-forge && \
-		pixi add fenics-dolfinx mpich; \
+uv_install:
+	@if ! command -v uv >/dev/null 2>&1; then \
+		echo "Installing uv..."; \
+		curl -LsSf https://astral.sh/uv/install.sh | sh; \
 	else \
-		echo 'Pixi project already initialised.'; \
+		echo "uv already installed."; \
 	fi
 
-quickstart: pixi_install pixi_init
+quickstart: pixi_install uv_install
 	set -e
-	pixi run uv pip install -e . --system
+	pixi run uv pip install -e . --system --no-deps
 	pixi run python3 -c "import dolfinx; print(dolfinx.__version__)"
 	@echo "dolfinx is installed..."
 	pixi run mpirun -n 4 python3 minimal_example.py

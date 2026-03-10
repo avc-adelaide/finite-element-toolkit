@@ -8,6 +8,6 @@ version = "0.1.0"
 [tasks]
 
 [dependencies]
-fenics-dolfinx = ">=0.10.0,<0.11"
-mpich = ">=4.3.2,<5"
-pyvista = ">=0.47.1,<0.48"
+fenics-dolfinx = "*"
+mpich = "*"
+pyvista = "*"
