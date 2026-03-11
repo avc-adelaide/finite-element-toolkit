@@ -1,0 +1,751 @@
+\documentclass[12pt,a4paper]{article}
+
+% Packages
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{mathtools}
+
+% Page geometry
+\geometry{margin=2.5cm}
+
+% Hyperref setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    citecolor=green!50!black,
+    urlcolor=blue!70!black,
+}
+
+% Code listing style
+\lstdefinestyle{python}{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    stringstyle=\color{red!60!black},
+    commentstyle=\color{green!50!black}\itshape,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=8pt,
+    frame=single,
+    backgroundcolor=\color{gray!8},
+    breaklines=true,
+    showstringspaces=false,
+    tabsize=4,
+}
+
+% Theorem environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+
+% Custom commands
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\dx}{\,\mathrm{d}x}
+\newcommand{\ds}{\,\mathrm{d}s}
+\newcommand{\dS}{\,\mathrm{d}S}
+\newcommand{\dt}{\,\mathrm{d}t}
+\newcommand{\Div}{\nabla\cdot}
+\newcommand{\Grad}{\nabla}
+\newcommand{\Lapl}{\Delta}
+\newcommand{\inner}[2]{\langle #1,\, #2 \rangle}
+\newcommand{\norm}[1]{\lVert #1 \rVert}
+\newcommand{\domain}{\Omega}
+\newcommand{\boundary}{\partial\Omega}
+
+% ---------------------------------------------------------------
+\title{%
+  \textbf{FEniCSx: Theory and Practice}\\[0.4em]
+  \large A Didactic Introduction to the Finite Element Method\\
+  and Its Implementation in FEniCSx
+}
+\author{AU FE Template}
+\date{\today}
+% ---------------------------------------------------------------
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% ================================================================
+\section{Introduction}
+\label{sec:introduction}
+% ================================================================
+
+The \textbf{Finite Element Method} (FEM) is one of the most powerful and
+widely used numerical techniques for solving partial differential equations
+(PDEs) arising in science and engineering.
+\textbf{FEniCSx} is a modern, open-source computing platform for solving PDEs
+using the finite element method~\cite{LoggMardalWells2012, Scroggs2022}.
+It provides high-level abstractions that allow users to express variational
+formulations close to their mathematical description, while transparently
+generating efficient low-level code.
+
+\subsection{What is FEniCSx?}
+
+FEniCSx is the latest generation of the FEniCS Project, succeeding the
+original FEniCS library.
+The project consists of several components:
+\begin{itemize}
+  \item \textbf{DOLFINx} -- the core C++/Python library providing data
+    structures for meshes, function spaces, and linear algebra.
+  \item \textbf{UFL} (Unified Form Language) -- a domain-specific language
+    for expressing variational forms in near-mathematical notation.
+  \item \textbf{FFCx} (FEniCS Form Compiler X) -- compiles UFL forms to
+    efficient C code.
+  \item \textbf{Basix} -- a finite element tabulation library providing
+    basis functions for a wide range of element families.
+\end{itemize}
+
+\subsection{Scope of This Document}
+
+This document provides a didactic introduction to the mathematical foundations
+underlying FEniCSx and their mapping to FEniCSx concepts and terminology.
+It is structured as follows:
+\begin{enumerate}
+  \item Section~\ref{sec:math} reviews the mathematical foundations:
+    function spaces, variational formulations, and the Galerkin method.
+  \item Section~\ref{sec:implementation} describes how these mathematical
+    constructs map to FEniCSx data structures and workflow.
+  \item Section~\ref{sec:examples} presents worked examples that can be
+    run directly with FEniCSx.
+\end{enumerate}
+
+% ================================================================
+\section{Mathematical Foundations}
+\label{sec:math}
+% ================================================================
+
+\subsection{Strong and Weak Formulations}
+
+Consider a domain $\domain \subset \R^d$ ($d = 1, 2, 3$) with boundary
+$\boundary = \partial\domain$.
+A PDE in \emph{strong form} prescribes the equation pointwise throughout
+$\domain$.
+For example, the \textbf{Poisson equation} with homogeneous Dirichlet boundary
+conditions reads:
+\begin{equation}
+  \label{eq:poisson-strong}
+  -\Lapl u = f \quad \text{in } \domain, \qquad
+  u = 0 \quad \text{on } \boundary,
+\end{equation}
+where $f \in L^2(\domain)$ is a given source term and $u$ is the unknown.
+
+The strong form requires $u$ to be twice continuously differentiable, a
+condition that is often too restrictive for discontinuous or rough data.
+The \emph{weak} (variational) form relaxes this requirement.
+
+\subsubsection{Deriving the Weak Form}
+
+Multiply~\eqref{eq:poisson-strong} by a \emph{test function}
+$v \in V_0 = H^1_0(\domain)$ and integrate over $\domain$:
+\begin{equation*}
+  -\int_\domain \Lapl u\, v \dx = \int_\domain f\, v \dx.
+\end{equation*}
+Applying Green's first identity (integration by parts):
+\begin{equation*}
+  -\int_\domain \Lapl u\, v \dx
+    = \int_\domain \Grad u \cdot \Grad v \dx
+      - \int_\boundary \frac{\partial u}{\partial n} v \ds,
+\end{equation*}
+where $\mathbf{n}$ is the outward unit normal to $\boundary$.
+Since $v = 0$ on $\boundary$ (by the choice of $V_0$), the boundary term
+vanishes.
+The \textbf{weak formulation} of~\eqref{eq:poisson-strong} then reads:
+
+\begin{equation}
+  \label{eq:poisson-weak}
+  \text{Find } u \in V \text{ such that }
+  a(u, v) = L(v) \quad \forall v \in V,
+\end{equation}
+where the \emph{bilinear form} $a$ and the \emph{linear form} $L$ are defined
+as
+\begin{align}
+  a(u, v) &= \int_\domain \Grad u \cdot \Grad v \dx, \label{eq:bilinear}\\
+  L(v)    &= \int_\domain f\, v \dx.               \label{eq:linear}
+\end{align}
+
+\begin{remark}
+In FEniCSx/UFL notation, $a(u,v)$ is called the \emph{bilinear form} or
+\emph{left-hand side}, and $L(v)$ is the \emph{linear form} or
+\emph{right-hand side}.
+\end{remark}
+
+\subsection{Sobolev Spaces and Function Spaces}
+
+The natural setting for variational problems is a \emph{Sobolev space}.
+\begin{definition}[Sobolev Space $H^1$]
+The Sobolev space $H^1(\domain)$ consists of all square-integrable functions
+whose first-order weak derivatives are also square-integrable:
+\begin{equation*}
+  H^1(\domain) = \bigl\{ v \in L^2(\domain)
+    \mid \nabla v \in [L^2(\domain)]^d \bigr\},
+\end{equation*}
+equipped with the norm
+$\norm{v}_{H^1}^2 = \norm{v}_{L^2}^2 + \norm{\nabla v}_{L^2}^2$.
+\end{definition}
+
+\begin{definition}[Homogeneous Dirichlet Space $H^1_0$]
+$H^1_0(\domain)$ is the subspace of $H^1(\domain)$ whose elements satisfy
+$v = 0$ on $\boundary$ in the trace sense.
+\end{definition}
+
+In FEniCSx, function spaces are created using the \texttt{functionspace}
+function (or \texttt{FunctionSpace} in legacy FEniCS) and are characterised
+by the mesh, element family, and polynomial degree.
+
+\subsection{The Galerkin Finite Element Method}
+
+The Galerkin method converts the infinite-dimensional problem~\eqref{eq:poisson-weak}
+into a finite-dimensional approximation by replacing $V$ with a finite-dimensional
+subspace $V_h \subset V$.
+
+\subsubsection{Mesh and Triangulation}
+
+Let $\mathcal{T}_h$ be a \emph{triangulation} (mesh) of $\domain$ into
+non-overlapping elements (triangles in 2D, tetrahedra in 3D, intervals in 1D).
+The subscript $h$ denotes the \emph{mesh size} (characteristic element diameter).
+
+\subsubsection{Finite Element Basis}
+
+On each element $K \in \mathcal{T}_h$, a polynomial space is defined.
+For the standard continuous Lagrange element of degree $p$, the local space is
+$\mathcal{P}_p(K)$ -- the space of polynomials of total degree at most $p$.
+The global finite element space is
+\begin{equation*}
+  V_h = \bigl\{ v_h \in C^0(\bar\domain)
+    \mid v_h|_K \in \mathcal{P}_p(K)\ \forall K \in \mathcal{T}_h \bigr\},
+\end{equation*}
+where continuity across element boundaries is enforced by shared degrees of
+freedom (DOFs).
+The homogeneous Dirichlet subspace is
+$V_{h,0} = V_h \cap H^1_0(\domain)$.
+
+\subsubsection{Discrete Variational Problem}
+
+Replacing $V$ by $V_h$ in~\eqref{eq:poisson-weak} gives the
+\emph{discrete variational problem}:
+\begin{equation}
+  \label{eq:discrete}
+  \text{Find } u_h \in V_h \text{ such that }
+  a(u_h, v_h) = L(v_h) \quad \forall v_h \in V_h.
+\end{equation}
+
+Writing $u_h = \sum_{j=1}^N U_j \phi_j$ in terms of the nodal basis
+$\{\phi_j\}_{j=1}^N$ of $V_h$, problem~\eqref{eq:discrete} becomes the
+linear system
+\begin{equation}
+  \label{eq:linsys}
+  \mathbf{A}\,\mathbf{U} = \mathbf{b},
+\end{equation}
+where
+\begin{align*}
+  A_{ij} &= a(\phi_j, \phi_i) = \int_\domain \Grad\phi_j \cdot \Grad\phi_i \dx, \\
+  b_i    &= L(\phi_i)        = \int_\domain f\,\phi_i \dx.
+\end{align*}
+The matrix $\mathbf{A}$ is the \emph{stiffness matrix} and $\mathbf{b}$ is
+the \emph{load vector}.
+
+\subsection{Boundary Conditions}
+
+\subsubsection{Dirichlet Boundary Conditions}
+
+A \textbf{Dirichlet} (essential) boundary condition enforces the value of
+the unknown on a portion $\Gamma_D \subseteq \boundary$:
+\begin{equation*}
+  u = g_D \quad \text{on } \Gamma_D.
+\end{equation*}
+In the discrete problem, Dirichlet conditions are imposed by modifying the
+linear system~\eqref{eq:linsys}.
+In FEniCSx, this is done via \texttt{dirichletbc} objects passed to the
+\texttt{solve} function or the \texttt{LinearProblem} class.
+
+\subsubsection{Neumann Boundary Conditions}
+
+A \textbf{Neumann} (natural) boundary condition prescribes the normal flux
+on $\Gamma_N \subseteq \boundary$:
+\begin{equation*}
+  \frac{\partial u}{\partial n} = g_N \quad \text{on } \Gamma_N.
+\end{equation*}
+Neumann conditions appear naturally in the weak form as a boundary integral
+added to the linear form:
+\begin{equation*}
+  L(v) = \int_\domain f\,v \dx + \int_{\Gamma_N} g_N\,v \ds.
+\end{equation*}
+
+\subsubsection{Robin (Mixed) Boundary Conditions}
+
+A \textbf{Robin} condition combines Dirichlet and Neumann conditions:
+\begin{equation*}
+  \frac{\partial u}{\partial n} + \alpha u = \beta
+  \quad \text{on } \Gamma_R.
+\end{equation*}
+This introduces both a boundary bilinear term $\alpha\int_{\Gamma_R} u v \ds$
+and a boundary linear term $\int_{\Gamma_R}\beta v \ds$ into the weak form.
+
+\subsection{A Priori Error Estimates}
+
+A fundamental result for conforming Galerkin methods is \emph{C\'{e}a's lemma},
+which states that the discrete solution is a quasi-best approximation in $V_h$:
+\begin{theorem}[C\'{e}a's Lemma]
+Let $u$ be the solution to the continuous problem~\eqref{eq:poisson-weak}
+and $u_h$ the solution to the discrete problem~\eqref{eq:discrete}.
+If $a(\cdot,\cdot)$ is continuous (bounded) and coercive on $V$ with
+constants $M$ and $\alpha > 0$, then
+\begin{equation*}
+  \norm{u - u_h}_{H^1} \leq \frac{M}{\alpha}\,
+  \inf_{v_h \in V_h} \norm{u - v_h}_{H^1}.
+\end{equation*}
+\end{theorem}
+
+Combined with standard interpolation estimates, for a regular mesh and
+$u \in H^{p+1}(\domain)$:
+\begin{equation*}
+  \norm{u - u_h}_{H^1} \leq C\, h^p\, \norm{u}_{H^{p+1}},
+\end{equation*}
+confirming that the error decreases at rate $h^p$ as the mesh is refined.
+
+% ================================================================
+\section{Implementation Overview}
+\label{sec:implementation}
+% ================================================================
+
+This section maps the mathematical ingredients from Section~\ref{sec:math}
+to concrete FEniCSx constructs.
+
+\subsection{The FEniCSx Workflow}
+
+A typical FEniCSx workflow follows these steps:
+
+\begin{enumerate}
+  \item \textbf{Create or import a mesh.}
+  \item \textbf{Define a function space} on the mesh.
+  \item \textbf{Define trial and test functions.}
+  \item \textbf{Specify boundary conditions.}
+  \item \textbf{Write the variational problem} using UFL.
+  \item \textbf{Assemble and solve} the linear system.
+  \item \textbf{Post-process and visualise} the solution.
+\end{enumerate}
+
+\subsection{Meshes in DOLFINx}
+
+FEniCSx provides built-in mesh generators for simple domains and supports
+import from external tools (Gmsh, XDMF/HDF5 files).
+
+\begin{lstlisting}[style=python, caption={Creating a unit-square mesh in FEniCSx.}]
+import dolfinx.mesh
+from mpi4py import MPI
+import numpy as np
+
+# Create a unit square mesh with 32x32 quadrilateral cells
+domain = dolfinx.mesh.create_unit_square(
+    MPI.COMM_WORLD, 32, 32,
+    cell_type=dolfinx.mesh.CellType.triangle
+)
+\end{lstlisting}
+
+Key mesh attributes available in DOLFINx:
+\begin{itemize}
+  \item \texttt{domain.topology} -- connectivity information (vertices, edges, faces, cells).
+  \item \texttt{domain.geometry} -- coordinate data.
+  \item \texttt{domain.comm} -- MPI communicator (enables parallel computation).
+\end{itemize}
+
+\subsection{Function Spaces}
+
+A \emph{finite element function space} $V_h$ is created from a mesh and an
+element specification.
+
+\begin{lstlisting}[style=python, caption={Creating a Lagrange function space.}]
+from dolfinx.fem import functionspace
+import basix.ufl
+
+# Continuous Lagrange elements of degree 1 (piecewise linear)
+V = functionspace(domain, ("Lagrange", 1))
+
+# Degree-2 Lagrange for higher accuracy
+V2 = functionspace(domain, ("Lagrange", 2))
+\end{lstlisting}
+
+The string \texttt{"Lagrange"} specifies the \emph{element family};
+the integer is the polynomial degree $p$.
+Other supported families include \texttt{"DG"} (discontinuous Galerkin),
+\texttt{"N1curl"} (N\'{e}d\'{e}lec curl-conforming elements),
+and \texttt{"RT"} (Raviart--Thomas divergence-conforming elements).
+
+\subsection{Trial and Test Functions}
+
+In UFL, \emph{trial functions} $u$ represent the unknown solution and
+\emph{test functions} $v$ are used to form the variational problem.
+
+\begin{lstlisting}[style=python, caption={Defining trial and test functions.}]
+import ufl
+
+u = ufl.TrialFunction(V)   # trial function (unknown)
+v = ufl.TestFunction(V)    # test function (weight)
+\end{lstlisting}
+
+After solving, the numerical solution is stored in a \texttt{Function} object:
+\begin{lstlisting}[style=python, caption={Creating a Function to hold the solution.}]
+from dolfinx.fem import Function
+
+uh = Function(V)  # will store the discrete solution u_h
+\end{lstlisting}
+
+\subsection{Variational Forms in UFL}
+
+UFL provides a high-level syntax for expressing bilinear and linear forms
+that mirrors mathematical notation.
+
+\begin{lstlisting}[style=python, caption={Expressing the Poisson variational form in UFL.}]
+import ufl
+from dolfinx.fem import Constant
+
+f = Constant(domain, 1.0)  # right-hand side f = 1
+
+# Bilinear form a(u, v)
+a = ufl.inner(ufl.grad(u), ufl.grad(v)) * ufl.dx
+
+# Linear form L(v)
+L = f * v * ufl.dx
+\end{lstlisting}
+
+\begin{table}[ht]
+  \centering
+  \caption{Common UFL operators and their mathematical counterparts.}
+  \label{tab:ufl}
+  \begin{tabular}{lll}
+    \toprule
+    \textbf{UFL}            & \textbf{Math}               & \textbf{Description}         \\
+    \midrule
+    \texttt{ufl.grad(u)}    & $\nabla u$                  & Gradient                     \\
+    \texttt{ufl.div(u)}     & $\nabla \cdot \mathbf{u}$   & Divergence                   \\
+    \texttt{ufl.curl(u)}    & $\nabla \times \mathbf{u}$  & Curl                         \\
+    \texttt{ufl.inner(a,b)} & $a \cdot b$                 & Inner product                \\
+    \texttt{ufl.dot(a,b)}   & $a \cdot b$                 & Dot product                  \\
+    \texttt{ufl.dx}         & $\dx$                       & Volume integration measure   \\
+    \texttt{ufl.ds}         & $\ds$                       & Exterior facet measure       \\
+    \texttt{ufl.dS}         & $\dS$                       & Interior facet measure       \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Boundary Conditions in FEniCSx}
+
+\begin{lstlisting}[style=python, caption={Applying homogeneous Dirichlet boundary conditions.}]
+import dolfinx.fem as fem
+import numpy as np
+
+# Locate all boundary facets
+domain.topology.create_connectivity(
+    domain.topology.dim - 1, domain.topology.dim
+)
+boundary_facets = dolfinx.mesh.exterior_facet_indices(domain.topology)
+
+# Find DOFs on the boundary
+boundary_dofs = fem.locate_dofs_topological(V, domain.topology.dim - 1,
+                                            boundary_facets)
+
+# Create homogeneous Dirichlet condition u = 0
+bc = fem.dirichletbc(
+    fem.Constant(domain, 0.0),
+    boundary_dofs, V
+)
+\end{lstlisting}
+
+For non-homogeneous conditions, pass a \texttt{Function} or a scalar/vector
+value in place of \texttt{Constant(domain, 0.0)}.
+
+\subsection{Assembly and Solving}
+
+FEniCSx assembles the stiffness matrix and load vector from the UFL forms
+and solves the resulting linear system.
+The high-level \texttt{LinearProblem} interface handles assembly and solving
+in one call:
+
+\begin{lstlisting}[style=python, caption={Solving with LinearProblem.}]
+from dolfinx.fem.petsc import LinearProblem
+
+problem = LinearProblem(a, L, bcs=[bc],
+                        petsc_options={"ksp_type": "preonly",
+                                       "pc_type": "lu"})
+uh = problem.solve()
+\end{lstlisting}
+
+For more control (e.g.\ custom preconditioners, iterative solvers), the
+forms can be assembled separately:
+
+\begin{lstlisting}[style=python, caption={Manual assembly using \texttt{assemble\_matrix} and \texttt{assemble\_vector}.}]
+import dolfinx.fem.petsc as petsc_fem
+from petsc4py import PETSc
+
+A = petsc_fem.assemble_matrix(fem.form(a), bcs=[bc])
+A.assemble()
+
+b = petsc_fem.assemble_vector(fem.form(L))
+petsc_fem.apply_lifting(b, [fem.form(a)], [[bc]])
+b.ghostUpdate(addv=PETSc.InsertMode.ADD,
+              mode=PETSc.ScatterMode.REVERSE)
+petsc_fem.set_bc(b, [bc])
+\end{lstlisting}
+
+\subsection{Visualisation}
+
+FEniCSx integrates with \textbf{ParaView} via XDMF/VTK output and supports
+in-notebook rendering with \textbf{pyvista}.
+
+\begin{lstlisting}[style=python, caption={Writing solution to an XDMF file for ParaView.}]
+from dolfinx.io import XDMFFile
+
+with XDMFFile(domain.comm, "poisson.xdmf", "w") as file:
+    file.write_mesh(domain)
+    file.write_function(uh)
+\end{lstlisting}
+
+% ================================================================
+\section{Example Applications}
+\label{sec:examples}
+% ================================================================
+
+\subsection{Example 1: Poisson Equation on the Unit Square}
+\label{sec:ex-poisson}
+
+We solve the Poisson equation
+\begin{equation}
+  -\Lapl u = f \quad \text{in } \domain = [0,1]^2,
+  \qquad u = 0 \quad \text{on } \boundary,
+\end{equation}
+with the manufactured solution $u_\text{exact}(x,y) = \sin(\pi x)\sin(\pi y)$,
+which requires $f = 2\pi^2 \sin(\pi x)\sin(\pi y)$.
+
+\begin{lstlisting}[style=python, caption={Complete FEniCSx script for the Poisson equation.}]
+import numpy as np
+from mpi4py import MPI
+import dolfinx
+import dolfinx.mesh
+from dolfinx.fem import (functionspace, Function, Constant,
+                          locate_dofs_topological, dirichletbc, form)
+from dolfinx.fem.petsc import LinearProblem
+import ufl
+
+# 1. Mesh
+domain = dolfinx.mesh.create_unit_square(
+    MPI.COMM_WORLD, 32, 32,
+    cell_type=dolfinx.mesh.CellType.triangle
+)
+
+# 2. Function space
+V = functionspace(domain, ("Lagrange", 1))
+
+# 3. Trial and test functions
+u = ufl.TrialFunction(V)
+v = ufl.TestFunction(V)
+
+# 4. Source term
+x = ufl.SpatialCoordinate(domain)
+f = 2.0 * ufl.pi**2 * ufl.sin(ufl.pi * x[0]) * ufl.sin(ufl.pi * x[1])
+
+# 5. Variational forms
+a = ufl.inner(ufl.grad(u), ufl.grad(v)) * ufl.dx
+L = f * v * ufl.dx
+
+# 6. Dirichlet boundary condition
+domain.topology.create_connectivity(
+    domain.topology.dim - 1, domain.topology.dim
+)
+boundary_facets = dolfinx.mesh.exterior_facet_indices(domain.topology)
+boundary_dofs = locate_dofs_topological(
+    V, domain.topology.dim - 1, boundary_facets
+)
+bc = dirichletbc(Constant(domain, 0.0), boundary_dofs, V)
+
+# 7. Solve
+problem = LinearProblem(a, L, bcs=[bc],
+                        petsc_options={"ksp_type": "preonly",
+                                       "pc_type": "lu"})
+uh = problem.solve()
+
+# 8. Compute L2 error
+u_exact = ufl.sin(ufl.pi * x[0]) * ufl.sin(ufl.pi * x[1])
+error_form = form((uh - u_exact)**2 * ufl.dx)
+import dolfinx.fem
+error_L2 = np.sqrt(
+    domain.comm.allreduce(
+        dolfinx.fem.assemble_scalar(error_form), op=MPI.SUM
+    )
+)
+if domain.comm.rank == 0:
+    print(f"L2 error: {error_L2:.3e}")
+\end{lstlisting}
+
+\subsection{Example 2: Transient Heat Equation}
+\label{sec:ex-heat}
+
+The heat equation models time-dependent diffusion:
+\begin{equation}
+  \frac{\partial u}{\partial t} - \Lapl u = f
+  \quad \text{in } \domain \times (0, T],
+  \qquad u = 0 \text{ on } \boundary,
+  \qquad u(\cdot, 0) = u_0 \text{ in } \domain.
+\end{equation}
+
+Applying the \textbf{backward Euler} time-stepping scheme with step $\Delta t$:
+\begin{equation*}
+  u^{n+1} - u^n = \Delta t\,\bigl(\Lapl u^{n+1} + f^{n+1}\bigr),
+\end{equation*}
+the weak form at each time step becomes:
+\begin{equation}
+  \underbrace{\int_\domain u^{n+1} v \dx
+    + \Delta t \int_\domain \Grad u^{n+1} \cdot \Grad v \dx}_{a(u^{n+1},v)}
+  = \underbrace{\int_\domain u^n v \dx
+    + \Delta t \int_\domain f^{n+1} v \dx}_{L(v)}.
+\end{equation}
+
+\begin{lstlisting}[style=python, caption={Time-stepping loop for the heat equation (FEniCSx).}]
+# (Continuing from Example 1 setup -- mesh and V already created)
+import numpy as np
+from dolfinx.fem import Function, Constant
+from dolfinx.fem.petsc import LinearProblem
+import ufl
+
+dt = 0.01
+T  = 0.5
+
+u_n = Function(V)    # solution at previous time step
+u_n.interpolate(lambda x: np.sin(np.pi * x[0]) * np.sin(np.pi * x[1]))
+
+u  = ufl.TrialFunction(V)
+v  = ufl.TestFunction(V)
+f  = Constant(domain, 0.0)
+
+a = (u * v + dt * ufl.inner(ufl.grad(u), ufl.grad(v))) * ufl.dx
+L = (u_n * v + dt * f * v) * ufl.dx
+
+t = 0.0
+while t < T:
+    t += dt
+    problem = LinearProblem(a, L, bcs=[bc],
+                            petsc_options={"ksp_type": "preonly",
+                                           "pc_type": "lu"})
+    uh = problem.solve()
+    u_n.x.array[:] = uh.x.array
+\end{lstlisting}
+
+\subsection{Example 3: Linear Elasticity}
+\label{sec:ex-elasticity}
+
+Linear elasticity governs the displacement $\mathbf{u}$ of an elastic body:
+\begin{equation*}
+  -\Div\boldsymbol{\sigma}(\mathbf{u}) = \mathbf{f}
+  \quad \text{in } \domain,
+\end{equation*}
+where the \emph{stress tensor} $\boldsymbol{\sigma}$ is related to the
+\emph{strain tensor} $\boldsymbol{\varepsilon}$ through
+\emph{Hooke's law} (isotropic material):
+\begin{align*}
+  \boldsymbol{\sigma}(\mathbf{u})
+    &= \lambda (\Div\mathbf{u})\mathbf{I}
+      + 2\mu\,\boldsymbol{\varepsilon}(\mathbf{u}),\\
+  \boldsymbol{\varepsilon}(\mathbf{u})
+    &= \tfrac{1}{2}\bigl(\nabla\mathbf{u} + (\nabla\mathbf{u})^T\bigr),
+\end{align*}
+with Lam\'{e} parameters $\lambda, \mu > 0$.
+
+The variational form for vector-valued displacement $\mathbf{u}$ is:
+\begin{equation}
+  a(\mathbf{u},\mathbf{v})
+    = \int_\domain \boldsymbol{\sigma}(\mathbf{u}) : \boldsymbol{\varepsilon}(\mathbf{v}) \dx
+    = \int_\domain \mathbf{f} \cdot \mathbf{v} \dx.
+\end{equation}
+
+In FEniCSx, vector-valued problems use a \emph{vector element}:
+\begin{lstlisting}[style=python, caption={Setting up a vector function space for elasticity.}]
+# Vector Lagrange space of degree 1 in 2D
+V_vec = functionspace(domain, ("Lagrange", 1, (domain.geometry.dim,)))
+
+lam = Constant(domain, 1.0)
+mu  = Constant(domain, 1.0)
+
+def epsilon(u):
+    return ufl.sym(ufl.grad(u))
+
+def sigma(u):
+    return lam * ufl.div(u) * ufl.Identity(len(u)) + 2 * mu * epsilon(u)
+
+u = ufl.TrialFunction(V_vec)
+v = ufl.TestFunction(V_vec)
+f = ufl.as_vector([0.0, -1.0])
+
+a = ufl.inner(sigma(u), epsilon(v)) * ufl.dx
+L = ufl.inner(f, v) * ufl.dx
+\end{lstlisting}
+
+% ================================================================
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
+% ================================================================
+
+This document has introduced the theoretical foundations of the Finite Element
+Method as implemented in FEniCSx.
+The key concepts are:
+\begin{itemize}
+  \item Derivation of the \emph{weak (variational) form} by multiplying the
+    strong PDE by test functions and integrating by parts.
+  \item The \emph{Galerkin discretisation} that restricts the problem to a
+    finite-dimensional subspace $V_h$ defined by a mesh and a polynomial degree.
+  \item FEniCSx abstractions: \texttt{mesh}, \texttt{FunctionSpace},
+    \texttt{TrialFunction}/\texttt{TestFunction}, \texttt{dirichletbc},
+    and UFL forms assembled by \texttt{LinearProblem}.
+  \item Worked examples: Poisson equation, heat equation (transient),
+    and linear elasticity.
+\end{itemize}
+
+For further reading, the official FEniCSx tutorial~\cite{Dokken2023} and
+the FEniCS book~\cite{LoggMardalWells2012} are excellent starting points.
+
+% ================================================================
+\begin{thebibliography}{9}
+% ================================================================
+
+\bibitem{LoggMardalWells2012}
+  A.~Logg, K.-A.~Mardal, G.~N.~Wells (eds.),
+  \textit{Automated Solution of Differential Equations by the Finite Element Method},
+  Springer, 2012.
+  \href{https://doi.org/10.1007/978-3-642-23099-8}{doi:10.1007/978-3-642-23099-8}
+
+\bibitem{Scroggs2022}
+  M.~W.~Scroggs, J.~S.~Dokken, C.~N.~Richardson, G.~N.~Wells,
+  Construction of Arbitrary Order Finite Element Degree-of-Freedom Maps on
+  Polygonal and Polyhedral Cell Meshes,
+  \textit{ACM Transactions on Mathematical Software}, 48(2), 2022.
+  \href{https://doi.org/10.1145/3524456}{doi:10.1145/3524456}
+
+\bibitem{Dokken2023}
+  J.~S.~Dokken,
+  \textit{The FEniCSx Tutorial},
+  Simula Research Laboratory, 2023.
+  \url{https://jsdokken.com/dolfinx-tutorial/}
+
+\bibitem{Brenner2008}
+  S.~C.~Brenner, L.~R.~Scott,
+  \textit{The Mathematical Theory of Finite Element Methods},
+  3rd ed., Springer, 2008.
+
+\bibitem{Ern2004}
+  A.~Ern, J.-L.~Guermond,
+  \textit{Theory and Practice of Finite Elements},
+  Springer, 2004.
+
+\end{thebibliography}
+
+\end{document}
