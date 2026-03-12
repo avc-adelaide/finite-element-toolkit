@@ -1,0 +1,23 @@
+
+[project]
+name = "au-fe-template"
+version = "0.1"
+
+dependencies = [
+  "pyvista",
+  "matplotlib",
+  "jupyter",
+]
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["osx-arm64"]
+
+[tool.pixi.pypi-dependencies]
+au-fe-template = { path = ".", editable = true }
+
+[tool.pixi.tasks]
+
+[tool.pixi.dependencies]
+fenics-dolfinx = ">=0.10.0,<0.11"
+mpich = ">=4.3.2,<5"
