@@ -430,9 +430,17 @@ conditions reads:
 where $f \in L^2(\domain)$ is a given source term and $u$ is the unknown.
 
 The strong form requires $u$ to be twice continuously differentiable, a
-condition that is often too restrictive for discontinuous or rough data.
+condition that is often too restrictive for discontinuous or rough data (for instance, a heat source which turns on abruptly, or an impulse force in vibration system).
 The \emph{weak} (variational) form relaxes this requirement.
 
+Why does \eqref{eq:poisson-strong} require this of $u$?
+The strong form requires $-\nabla^2 u = f$ to hold at every point in $\Omega$. 
+Since the Laplacian involves second-order partial derivatives, $u$ must be 
+twice differentiable for the left-hand side to even be defined pointwise. 
+If $f$ is rough or discontinuous, no such twice-differentiable 
+solution may exist.
+
+ 
 \subsubsection{Deriving the Weak Form}
 
 Multiply~\eqref{eq:poisson-strong} by a \emph{test function}
