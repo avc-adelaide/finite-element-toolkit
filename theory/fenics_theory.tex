@@ -133,7 +133,288 @@ It is structured as follows:
 \label{sec:math}
 % ================================================================
 
+\subsection{What Types of Problems Are Represented by PDEs?}
+\label{subsec:pde-types}
+
+Partial differential equations (PDEs) arise wherever a quantity varies
+continuously in space and/or time.
+Below are representative examples across disciplines, organised by the spatial
+dimension of the domain $\domain$.
+
+\subsubsection{One-Dimensional Problems}
+
+One-dimensional problems arise when the physical domain is a line segment
+$\domain = (a,b) \subset \R$ (e.g.\ a rod, cable, or pipe cross-section).
+
+\paragraph{Steady heat conduction in a rod.}
+Given a rod of length $L$ with thermal conductivity $\kappa > 0$ and a
+distributed heat source $f(x)$, the temperature $u(x)$ satisfies
+\begin{equation*}
+  -\kappa\,u'' = f \quad \text{in } (0,L),
+  \qquad u(0) = T_0,\quad u(L) = T_L,
+\end{equation*}
+an \emph{elliptic} (boundary-value) problem in 1D.
+
+\paragraph{Vibrating string (wave equation).}
+The transverse displacement $u(x,t)$ of a taut string with wave speed $c$
+obeys
+\begin{equation*}
+  u_{tt} = c^2\,u_{xx} \quad \text{in } (0,L)\times(0,T),
+\end{equation*}
+a \emph{hyperbolic} PDE requiring both initial displacement and velocity as
+data.
+
+\paragraph{Advection--diffusion equation.}
+Transport of a scalar concentration $u(x,t)$ with velocity $b$ and
+diffusivity $\varepsilon > 0$:
+\begin{equation*}
+  u_t + b\,u_x = \varepsilon\,u_{xx} \quad \text{in } \R\times(0,T).
+\end{equation*}
+This \emph{parabolic} equation models pollutant transport in rivers or
+solute migration along a column.
+
+\subsubsection{Two-Dimensional Problems}
+
+When the domain is a planar region $\domain \subset \R^2$, the spatial
+coordinates are $(x,y)$ and we encounter a rich variety of problem types.
+
+\paragraph{Membrane deflection (Poisson equation).}
+The small deflection $u(x,y)$ of a pre-stressed elastic membrane under a
+transverse load $f$ satisfies
+\begin{equation*}
+  -\Delta u = f \quad \text{in } \domain \subset \R^2,
+  \qquad u = 0 \quad \text{on } \boundary.
+\end{equation*}
+The same equation governs electrostatic potential in a grounded 2D conductor
+and steady-state groundwater pressure.
+
+\paragraph{Time-dependent heat conduction.}
+Transient temperature in a thin plate:
+\begin{equation*}
+  \rho c_p\,u_t - \nabla\cdot(\kappa\,\nabla u) = f
+  \quad \text{in } \domain\times(0,T),
+\end{equation*}
+a \emph{parabolic} PDE where $\rho$ is density and $c_p$ is specific heat.
+
+\paragraph{Linear elasticity (plane stress/strain).}
+Displacement field $\mathbf{u}(x,y) \in \R^2$ in a loaded structural
+component:
+\begin{equation*}
+  -\nabla\cdot\boldsymbol{\sigma}(\mathbf{u}) = \mathbf{f}
+  \quad \text{in } \domain,
+\end{equation*}
+where $\boldsymbol{\sigma}$ is the Cauchy stress tensor related to strain
+by Hooke's law.
+This is an \emph{elliptic system} of two coupled PDEs.
+
+\paragraph{Shallow-water equations.}
+Depth-averaged flow in coastal regions is described by the 2D
+shallow-water system (a first-order \emph{hyperbolic} system) governing
+water height and depth-averaged velocity.
+
+\subsubsection{Three-Dimensional Problems}
+
+Full 3D domains $\domain \subset \R^3$ with coordinates $(x,y,z)$ are
+required when out-of-plane or depth variation cannot be neglected.
+
+\paragraph{3D Poisson / Laplace equation.}
+The electric potential $\phi$ in a dielectric medium satisfies
+\begin{equation*}
+  -\nabla\cdot(\varepsilon\,\nabla\phi) = \rho_e
+  \quad \text{in } \domain \subset \R^3,
+\end{equation*}
+where $\varepsilon$ is permittivity and $\rho_e$ is charge density.
+Setting $\rho_e = 0$ gives the Laplace equation, governing steady
+diffusion in the absence of sources.
+
+\paragraph{3D linear elasticity.}
+Structural analysis of a 3D component under mechanical loading:
+\begin{equation*}
+  -\nabla\cdot\boldsymbol{\sigma}(\mathbf{u}) = \mathbf{f}
+  \quad \text{in } \domain \subset \R^3,
+\end{equation*}
+an \emph{elliptic system} of three coupled PDEs for the displacement
+components $(u_1, u_2, u_3)$.
+
+\paragraph{Incompressible Navier--Stokes equations.}
+Viscous fluid flow in 3D:
+\begin{align*}
+  \rho\bigl(\mathbf{u}_t + (\mathbf{u}\cdot\nabla)\mathbf{u}\bigr)
+    &= -\nabla p + \mu\,\Delta\mathbf{u} + \mathbf{f}, \\
+  \nabla\cdot\mathbf{u} &= 0,
+\end{align*}
+where $\mathbf{u}$ is velocity, $p$ pressure, $\rho$ density, and $\mu$
+dynamic viscosity.
+This coupled \emph{parabolic--elliptic} system governs aerodynamics,
+cardiovascular blood flow, and atmospheric dynamics.
+
+\paragraph{Maxwell's equations.}
+Electromagnetic wave propagation in 3D:
+\begin{align*}
+  \nabla\times\mathbf{H} &= \mathbf{J} + \partial_t(\varepsilon\mathbf{E}),\\
+  \nabla\times\mathbf{E} &= -\partial_t(\mu_0\mathbf{H}),
+\end{align*}
+a first-order \emph{hyperbolic system} for the electric field $\mathbf{E}$
+and magnetic field $\mathbf{H}$, with applications in photonics, antenna
+design, and MRI.
+
+% ----------------------------------------------------------------
+\subsection{What Is a PDE Mathematically?}
+\label{subsec:pde-definition}
+
+\subsubsection{Definition}
+
+\begin{definition}[Partial Differential Equation]
+A \textbf{partial differential equation} (PDE) is an equation relating an
+unknown function $u \colon \domain \to \R$ (or $\R^m$) to its partial
+derivatives.
+For $u$ depending on independent variables
+$\mathbf{x} = (x_1, \dots, x_d)$ (and possibly time $t$), a PDE of
+\emph{order $k$} has the general form
+\begin{equation}
+  \label{eq:pde-general}
+  F\!\left(\mathbf{x},\, u,\, \frac{\partial u}{\partial x_1},\dots,
+    \frac{\partial^k u}{\partial x_i^{k_i}\cdots}\right) = 0,
+\end{equation}
+where $F$ is a given function and the highest-order derivative appearing in
+$F$ determines the \emph{order} of the PDE.
+\end{definition}
+
+\subsubsection{Notation}
+
+Throughout this document we adopt the following notational conventions.
+
+\begin{itemize}
+  \item $\domain \subset \R^d$ denotes an open, bounded domain with
+    Lipschitz boundary $\boundary = \partial\domain$.
+    Spatial coordinates are $\mathbf{x} = (x_1,\ldots,x_d)$, often
+    written $(x)$ in 1D, $(x,y)$ in 2D, and $(x,y,z)$ in 3D.
+  \item $t \in (0,T]$ is time (for time-dependent problems).
+  \item Partial derivatives are written $\partial_t u \equiv u_t$,
+    $\partial_{x_i} u \equiv u_{x_i}$, etc.
+  \item The \textbf{gradient} of a scalar $u$ is
+    $\nabla u = (\partial_{x_1}u, \ldots, \partial_{x_d}u)^T \in \R^d$.
+  \item The \textbf{divergence} of a vector field
+    $\mathbf{q} = (q_1,\ldots,q_d)^T$ is
+    $\nabla\cdot\mathbf{q} = \sum_{i=1}^d \partial_{x_i} q_i$.
+  \item The \textbf{Laplacian} of a scalar $u$ is
+    $\Delta u = \nabla\cdot\nabla u = \sum_{i=1}^d \partial_{x_i}^2 u$.
+  \item \textbf{Multi-index notation:} a multi-index $\alpha =
+    (\alpha_1,\ldots,\alpha_d) \in \mathbb{N}_0^d$ with
+    $|\alpha| = \sum_i \alpha_i$ denotes
+    $D^\alpha u = \dfrac{\partial^{|\alpha|} u}{\partial x_1^{\alpha_1}
+    \cdots \partial x_d^{\alpha_d}}$.
+\end{itemize}
+
+\subsubsection{Classification of Second-Order PDEs}
+
+A second-order linear PDE in two variables $(x_1, x_2)$ with constant
+coefficients has the form
+$A\,u_{x_1 x_1} + B\,u_{x_1 x_2} + C\,u_{x_2 x_2} + \text{lower order} = 0$.
+Its \emph{type} is determined by the discriminant $\mathcal{D} = B^2 - 4AC$:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Type} & \textbf{Condition} & \textbf{Prototype} \\
+\midrule
+Elliptic   & $B^2 - 4AC < 0$ & Laplace / Poisson equation \\
+Parabolic  & $B^2 - 4AC = 0$ & Heat (diffusion) equation \\
+Hyperbolic & $B^2 - 4AC > 0$ & Wave equation \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Each type requires different boundary and/or initial data to be
+\emph{well-posed} (existence, uniqueness, and continuous dependence on
+data in the sense of Hadamard).
+
+\subsubsection{Boundary Conditions}
+\label{subsubsec:bcs}
+
+PDEs on bounded domains require \emph{boundary conditions} (BCs) on
+$\boundary$ to select a unique solution.
+Let $\{\Gamma_D, \Gamma_N, \Gamma_R\}$ be a non-overlapping partition of
+$\boundary$ ($\Gamma_D \cup \Gamma_N \cup \Gamma_R = \boundary$).
+
+\begin{description}
+  \item[Dirichlet (essential) BC.]
+    The solution value is prescribed on $\Gamma_D$:
+    \begin{equation*}
+      u = g_D \quad \text{on } \Gamma_D.
+    \end{equation*}
+    Examples: fixed temperature, clamped displacement, grounded potential.
+
+  \item[Neumann (natural) BC.]
+    The normal flux (outward derivative) is prescribed on $\Gamma_N$:
+    \begin{equation*}
+      \kappa\,\frac{\partial u}{\partial n}
+        \equiv \kappa\,\nabla u\cdot\mathbf{n} = g_N
+        \quad \text{on } \Gamma_N,
+    \end{equation*}
+    where $\mathbf{n}$ is the outward unit normal to $\boundary$.
+    Examples: insulated boundary ($g_N = 0$), prescribed heat flux.
+    The special case $g_N = 0$ is also called a \emph{no-flux} or
+    \emph{free} boundary condition.
+
+  \item[Robin (mixed) BC.]
+    A linear combination of value and normal flux is prescribed on
+    $\Gamma_R$:
+    \begin{equation*}
+      \kappa\,\frac{\partial u}{\partial n} + \alpha\,u = \beta
+      \quad \text{on } \Gamma_R,
+    \end{equation*}
+    where $\alpha > 0$ (required to ensure the bilinear form remains
+    coercive and the problem is well-posed).
+    Examples: convective heat transfer (Newton cooling), impedance BC in
+    acoustics.
+\end{description}
+
+\subsubsection{Initial Conditions}
+
+For time-dependent problems ($u = u(\mathbf{x},t)$), the state of the
+system at time $t=0$ must be specified.
+For a first-order problem in time:
+\begin{equation*}
+  u(\mathbf{x}, 0) = u_0(\mathbf{x}) \quad \text{in } \domain.
+\end{equation*}
+Second-order hyperbolic problems (e.g.\ the wave equation) additionally
+require the initial velocity:
+\begin{equation*}
+  u_t(\mathbf{x}, 0) = v_0(\mathbf{x}) \quad \text{in } \domain.
+\end{equation*}
+
+\subsubsection{Strong Form of a General PDE Problem}
+
+Combining the PDE with boundary and initial conditions gives a
+\emph{boundary-value problem} (BVP) or
+\emph{initial-boundary-value problem} (IBVP).
+As a concrete example, a general parabolic diffusion problem reads:
+
+\begin{equation}
+  \label{eq:ibvp}
+  \begin{cases}
+    u_t - \nabla\cdot(\kappa\,\nabla u) = f
+      & \text{in } \domain\times(0,T), \\[4pt]
+    u = g_D
+      & \text{on } \Gamma_D\times(0,T), \\[4pt]
+    \kappa\,\nabla u\cdot\mathbf{n} = g_N
+      & \text{on } \Gamma_N\times(0,T), \\[4pt]
+    u(\cdot,0) = u_0
+      & \text{in } \domain.
+  \end{cases}
+\end{equation}
+
+This \emph{strong form} requires the solution $u$ to satisfy
+\eqref{eq:ibvp} pointwise.
+As we shall see in Section~\ref{subsec:strong-weak}, relaxing this
+pointwise requirement by multiplying by a test function and integrating
+leads to the \emph{weak (variational) form}, which is the starting point
+for the finite element method.
+
+% ----------------------------------------------------------------
 \subsection{Strong and Weak Formulations}
+\label{subsec:strong-weak}
 
 Consider a domain $\domain \subset \R^d$ ($d = 1, 2, 3$) with boundary
 $\boundary = \partial\domain$.
