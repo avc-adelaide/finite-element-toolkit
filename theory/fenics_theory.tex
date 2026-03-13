@@ -487,6 +487,16 @@ as
 
 \subsection{Sobolev Spaces and Function Spaces}
 
+When we multiply a PDE by a test function and integrate, we must decide what
+space the test function lives in --- and, relatedly, what space we seek our
+solution in. These choices are not arbitrary: they must be broad enough to
+accommodate physically meaningful solutions that may lack classical smoothness,
+yet structured enough to ensure the mathematics is well-posed. For instance, in
+the weak formulation of the Poisson problem we required $\nabla u$ and $\nabla
+v$ to be square-integrable, which means neither $u$ nor $v$ can be an arbitrary
+$L^2(\domain)$ function. This motivates us to formalise the notion of a
+function space that tracks not just the size of a function, but also the size of its derivatives.
+
 The natural setting for variational problems is a \emph{Sobolev space}.
 \begin{definition}[Sobolev Space $H^1$]
 The Sobolev space $H^1(\domain)$ consists of all square-integrable functions
@@ -505,7 +515,7 @@ $v = 0$ on $\boundary$ in the trace sense.
 \end{definition}
 
 In FEniCSx, function spaces are created using the \texttt{functionspace}
-function (or \texttt{FunctionSpace} in legacy FEniCS) and are characterised
+function and are characterised
 by the mesh, element family, and polynomial degree.
 
 \subsection{The Galerkin Finite Element Method}
