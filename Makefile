@@ -37,3 +37,9 @@ uninstall:
 	rm -rf .pixi
 	rm -rf .venv
 	find . -type d -name "__pycache__" -exec rm -rf {} +
+
+example:
+	pixi run uv run example_000_cadquery.py && \
+	pixi run python3 example_001_gmsh.py && \
+	pixi run python3 example_002_mesh_fenics.py && \
+	pixi run python3 example_003_pyvista.py
