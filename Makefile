@@ -42,13 +42,13 @@ example: example_000 example_001 example_002 example_003
 	@echo "It actually worked (!)"
 
 example_000:
-	pixi run python3 example_000_cadquery.py
+	pixi run uv run example_000_cadquery.py
 
 example_001:
-	pixi run python3 example_001_gmsh.py
+	pixi run uv run example_001_gmsh.py
 
 example_002:
 	pixi run mpirun -n 1 python3 example_002_mesh_fenics.py
 
 example_003:
-	pixi run python3 example_003_pyvista.py
+	pixi run uv run example_003_pyvista.py
