@@ -68,12 +68,12 @@ eigensolver.setProblemType(SLEPc.EPS.ProblemType.GHEP)
 
 st = eigensolver.getST()
 st.setType(SLEPc.ST.Type.SINVERT)
-st.setShift(1e8)  # tune: sqrt(1e6)/(2π) ≈ 159 Hz — adjust for your plate size
+st.setShift(1e6)  # tune: sqrt(1e6)/(2π) ≈ 159 Hz — adjust for your plate size
 
 eigensolver.setWhichEigenpairs(SLEPc.EPS.Which.TARGET_MAGNITUDE)
 eigensolver.setTarget(1e6)
 eigensolver.setTolerances(tol=1e-8, max_it=1000)
-eigensolver.setDimensions(nev=100, ncv=100)
+eigensolver.setDimensions(nev=100, ncv=200)
 eigensolver.solve()
 
 n_converged = eigensolver.getConverged()
@@ -87,6 +87,8 @@ for i in range(n_converged):
     if lam.real < 0:
         continue
     freq_hz = np.sqrt(lam.real) / (2 * np.pi)
+    if freq_hz < 1.0:
+        continue
     print(f"Mode {i+1}: λ = {lam.real:.4e}, f = {freq_hz:.2f} Hz")
 
     mode = fem.Function(V)
