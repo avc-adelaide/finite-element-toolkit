@@ -1,16 +1,13 @@
-name: Publish Quarto Example and Theory Document
+name: Build and Deploy Site
 
 on:
-  workflow_run:
-    workflows: ["Compile Theory Document"]
-    types:
-      - completed
   push:
     branches:
       - main
     paths:
+      - 'theory/**'
       - 'quarto/**'
-      - '.github/workflows/publish-quarto.yml'
+      - '.github/workflows/build-and-deploy.yml'
   workflow_dispatch:
 
 # Minimum permissions for Pages deployment
@@ -18,7 +15,6 @@ permissions:
   contents: read
   pages: write
   id-token: write
-  actions: read
 
 # One deployment at a time; cancel in-progress runs if a new one starts
 concurrency:
@@ -26,23 +22,38 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: Build site
-    runs-on: macos-latest
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
-
+  compile-latex:
+    name: Compile LaTeX
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Download PDF from LaTeX workflow
+      - name: Compile fenics_theory.tex to PDF
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: fenics_theory.tex
+          working_directory: theory
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fenics_theory.pdf
+          path: theory/fenics_theory.pdf
+
+  build-site:
+    name: Build site
+    runs-on: macos-latest
+    needs: compile-latex
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Download PDF artifact
         uses: actions/download-artifact@v4
         with:
           name: fenics_theory.pdf
           path: theory
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       # ── Quarto document ───────────────────────────────────────────────────
 
@@ -69,7 +80,7 @@ jobs:
         uses: quarto-dev/quarto-actions/setup@v2
 
       - name: Render Quarto document
-        run: pixi run uvx quarto render quarto/example.qmd --to html
+        run: pixi run quarto render quarto/example.qmd --to html
 
       # ── Assemble site ─────────────────────────────────────────────────────
       - name: Build GitHub Pages site
@@ -149,7 +160,7 @@ jobs:
 
   deploy:
     name: Deploy to GitHub Pages
-    needs: build
+    needs: build-site
     runs-on: ubuntu-latest
     environment:
       name: github-pages
