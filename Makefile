@@ -4,11 +4,12 @@ SHELL := /bin/bash
 PIXISH := $(HOME)/.pixi
 
 help:
-	@echo "install_pixi  -  installs pixi if ~/.pixi is not found"
+	@echo "install_pixi  -  installs pixi with curl if ~/.pixi is not found"
+	@echo "install_uv    -  installs uv with curl if uv binary is not on path"
 	@echo "  quickstart  -  initialises pixi, installs dependencies, runs minimal_example.py"
 	@echo "   uninstall  -  removes installed files to allow starting from scratch"
 
-pixi_install:
+install_pixi:
 	@if [ ! -d "$(PIXISH)" ]; then \
 		echo "Installing pixi..."; \
 		curl -fsSL https://pixi.sh/install.sh | bash; \
@@ -16,7 +17,7 @@ pixi_install:
 		echo "Pixi already installed."; \
 	fi
 
-uv_install:
+install_uv:
 	@if ! command -v uv >/dev/null 2>&1; then \
 		echo "Installing uv..."; \
 		curl -LsSf https://astral.sh/uv/install.sh | sh; \
@@ -24,7 +25,7 @@ uv_install:
 		echo "uv already installed."; \
 	fi
 
-quickstart: pixi_install uv_install
+quickstart: install_pixi install_uv
 	set -e
 	pixi run uv pip install -e . --system --no-deps
 	pixi run python3 -c "import dolfinx; print(dolfinx.__version__)"
