@@ -1,4 +1,36 @@
-# au-fe-template
+# Finite Element Toolkit
+
+This repository is a template and toolkit for undertaking finite element analysis using open source tools.
+Currently the scope of the reposity covers:
+
+* Defining geometry using `cadquery`
+* Meshing using `gmsh`
+* FEA using `dolphinx/fenicsx`
+* Visualisation using `pyvista`
+
+By cloning the repository and using the setup defined in the Makefile, you should be able to set up a working
+finite element analysis simulation environment directly. This is performed using `pixi` and `uv` to define the
+dependencies — as long as these tools are available for your system this workflow should ‘just work’.
+
+## Documentation
+
+Alongside the environment setup, a variety of examples and tests are provided to demonstrate functionality and
+ensure the toolchains are working. Some didactic/formal documentation of the theory is also provided, but you
+should take this with a grain of salt — I don't know anywhere near as much about the finite element method as
+the people who have written these tools.
+
+### Theory Document
+
+A didactic introduction to the Finite Element Method (FEM) and its implementation in FEniCSx is available in the [`theory/`](theory/) folder.
+
+**[View / Download PDF](https://avc-adelaide.github.io/finite-element-toolkit/fenics_theory.pdf)**
+
+### Quarto Example
+
+A hands-on walkthrough of a 1-D Poisson problem solved with pure NumPy (no FEM library required) is in the [`quarto/`](quarto/) folder.  The document includes code, maths, and a plot, and is rendered via [Quarto](https://quarto.org).
+
+**[View Quarto document](https://avc-adelaide.github.io/finite-element-toolkit/quarto/)**
+
 
 ## Manual installation steps
 
@@ -47,21 +79,3 @@ You can then delete all of the installed files and start from fresh using
 ```
 make uninstall
 ```
-
-## Published Documents
-
-Both documents below are automatically built and published to **[GitHub Pages](https://avc-adelaide.github.io/finite-element-toolkit/)** on every push to `main`.
-
-[![Publish Quarto Example and Theory Document](https://github.com/avc-adelaide/finite-element-toolkit/actions/workflows/publish-quarto.yml/badge.svg)](https://github.com/avc-adelaide/finite-element-toolkit/actions/workflows/publish-quarto.yml)
-
-### Theory Document
-
-A didactic introduction to the Finite Element Method (FEM) and its implementation in FEniCSx is available in the [`theory/`](theory/) folder.
-
-**[View / Download PDF](https://avc-adelaide.github.io/finite-element-toolkit/fenics_theory.pdf)**
-
-### Quarto Example
-
-A hands-on walkthrough of a 1-D Poisson problem solved with pure NumPy (no FEM library required) is in the [`quarto/`](quarto/) folder.  The document includes code, maths, and a plot, and is rendered via [Quarto](https://quarto.org).
-
-**[View Quarto document](https://avc-adelaide.github.io/finite-element-toolkit/quarto/)**
