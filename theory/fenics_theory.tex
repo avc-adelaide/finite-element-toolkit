@@ -100,25 +100,23 @@ intend to expand and supplement and modify this material over time\dots
 The \textbf{Finite Element Method} (FEM) is one of the most powerful and
 widely used numerical techniques for solving partial differential equations
 (PDEs) arising in science and engineering.
-\textbf{FEniCSx} is a modern, open-source computing platform for solving PDEs
-using the finite element method~\cite{LoggMardalWells2012, Scroggs2022}.
-It provides high-level abstractions that allow users to express variational
+\textbf{FEniCSx} is an open-source computing platform for solving PDEs
+using the finite element method~\cite{LoggMardalWells2012, Scroggs2022}, which
+provides high-level abstractions that allow users to express variational
 formulations close to their mathematical description, while transparently
 generating efficient low-level code.
 
 \subsection{What is FEniCSx?}
 
-FEniCSx is the latest generation of the FEniCS Project, succeeding the
-original FEniCS library.
-The project consists of several components:
+FEniCSx consists of several components:
 \begin{itemize}
-  \item \textbf{DOLFINx} -- the core C++/Python library providing data
+  \item \textbf{DOLFINx} --- the core C++/Python library providing data
     structures for meshes, function spaces, and linear algebra.
-  \item \textbf{UFL} (Unified Form Language) -- a domain-specific language
+  \item \textbf{UFL} (Unified Form Language) --- a domain-specific language
     for expressing variational forms in near-mathematical notation.
-  \item \textbf{FFCx} (FEniCS Form Compiler X) -- compiles UFL forms to
+  \item \textbf{FFCx} (FEniCS Form Compiler X) --- compiles UFL forms to
     efficient C code.
-  \item \textbf{Basix} -- a finite element tabulation library providing
+  \item \textbf{Basix} --- a finite element tabulation library providing
     basis functions for a wide range of element families.
 \end{itemize}
 
@@ -294,7 +292,10 @@ Throughout this document we adopt the following notational conventions.
 
 \begin{itemize}
   \item $\domain \subset \R^d$ denotes an open, bounded domain with
-    Lipschitz boundary $\boundary = \partial\domain$.
+    Lipschitz boundary $\boundary = \partial\domain$.%
+    \footnote{%
+    Lipschitz means the boundary is locally representable as a graph with bounded (i.e., non-infinite) slope, excluding cusps and fractal irregularities.
+    Note that this use of the $\partial$ symbol is unrelated to a partial derivative. This notation is standard in topology, differential geometry, and differential topology.}
     Spatial coordinates are $\mathbf{x} = (x_1,\ldots,x_d)$, often
     written $(x)$ in 1D, $(x,y)$ in 2D, and $(x,y,z)$ in 3D.
   \item $t \in (0,T]$ is time (for time-dependent problems).
@@ -342,11 +343,14 @@ data in the sense of Hadamard).
 
 PDEs on bounded domains require \emph{boundary conditions} (BCs) on
 $\boundary$ to select a unique solution.
+We must specify appropriate boundary conditions that model how the exterior influences the domain.
+Boundary conditions can be one of thee types: Dirichlet, Neumann, or Robin.
 Let $\{\Gamma_D, \Gamma_N, \Gamma_R\}$ be a non-overlapping partition of
 $\boundary$ ($\Gamma_D \cup \Gamma_N \cup \Gamma_R = \boundary$).
 
 \begin{description}
   \item[Dirichlet (essential) BC.]
+    This type of boundary condition is is used when the surroundings enforce a fixed state.
     The solution value is prescribed on $\Gamma_D$:
     \begin{equation*}
       u = g_D \quad \text{on } \Gamma_D.
@@ -354,6 +358,7 @@ $\boundary$ ($\Gamma_D \cup \Gamma_N \cup \Gamma_R = \boundary$).
     Examples: fixed temperature, clamped displacement, grounded potential.
 
   \item[Neumann (natural) BC.]
+    This is used when there is a specifed flux (or no flux) with the surrounding.
     The normal flux (outward derivative) is prescribed on $\Gamma_N$:
     \begin{equation*}
       \kappa\,\frac{\partial u}{\partial n}
@@ -366,6 +371,7 @@ $\boundary$ ($\Gamma_D \cup \Gamma_N \cup \Gamma_R = \boundary$).
     \emph{free} boundary condition.
 
   \item[Robin (mixed) BC.]
+    This boundary condition is used when there is exchange with an environment outside the boundary.
     A linear combination of value and normal flux is prescribed on
     $\Gamma_R$:
     \begin{equation*}
