@@ -97,8 +97,8 @@ intend to expand and supplement and modify this material over time\dots
 \label{sec:introduction}
 % ================================================================
 
-The \textbf{Finite Element Method} (FEM) is one of the most powerful and
-widely used numerical techniques for solving partial differential equations
+The \textbf{Finite Element Method} (FEM) is a powerful and
+widely used numerical technique for solving partial differential equations
 (PDEs) arising in science and engineering.
 \textbf{FEniCSx} is an open-source computing platform for solving PDEs
 using the finite element method~\cite{LoggMardalWells2012, Scroggs2022}, which
@@ -123,7 +123,7 @@ FEniCSx consists of several components:
 \subsection{Scope of This Document}
 
 This document provides a didactic introduction to the mathematical foundations
-underlying FEniCSx and their mapping to FEniCSx concepts and terminology.
+underlying the finite element method, and their mapping to FEniCSx concepts and terminology.
 It is structured as follows:
 \begin{enumerate}
   \item Section~\ref{sec:math} reviews the mathematical foundations:
@@ -335,8 +335,13 @@ Hyperbolic & $B^2 - 4AC > 0$ & Wave equation \\
 \end{center}
 
 Each type requires different boundary and/or initial data to be
-\emph{well-posed} (existence, uniqueness, and continuous dependence on
-data in the sense of Hadamard).
+\emph{well-posed} in the sense of Hadamard: existence, uniqueness, and continuous dependence on
+data:
+\begin{itemize}
+  \item \textbf{Existence:} There exists a solution \(u\) that satisfies the PDE and the prescribed boundary/initial conditions.
+  \item \textbf{Uniqueness:} If \(u_1\) and \(u_2\) both satisfy the PDE with the same data, then \(u_1 = u_2\).
+  \item \textbf{Continuous dependence on data:} Small changes in the boundary/initial data lead to small changes in the solution (in an appropriate norm).
+\end{itemize}
 
 \subsubsection{Boundary Conditions}
 \label{subsubsec:bcs}
@@ -650,8 +655,8 @@ confirming that the error decreases at rate $h^p$ as the mesh is refined.
 \label{sec:implementation}
 % ================================================================
 
-This section maps the mathematical ingredients from Section~\ref{sec:math}
-to concrete FEniCSx constructs.
+This section maps the mathematical descriptions from Section~\ref{sec:math}
+to FEniCSx constructs.
 
 \subsection{The FEniCSx Workflow}
 
