@@ -24,7 +24,7 @@ install:
 minimal_example:
 	pixi run mpirun -n 4 python3 minimal_example.py
 
-quickstart: install_pixi install_uv install check_packages minimal_example
+quickstart: install_pixi install check_packages minimal_example
 	@echo "Everything seems to have run successfully!"
 
 check_packages:
@@ -33,6 +33,7 @@ check_packages:
 
 reset:
 	@echo "Removing pixi environment and caches..."
+	pixi clean cache --yes
 	rm -rf .pixi
 	rm -rf .venv
 	find . -type d -name "__pycache__" -exec rm -rf {} +
