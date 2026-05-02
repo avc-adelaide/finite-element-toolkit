@@ -6,7 +6,6 @@ PIXISH := $(HOME)/.pixi
 help:
 	@echo "  quickstart  -  initialises pixi, installs dependencies, runs minimal_example.py"
 	@echo "install_pixi  -  installs pixi if ~/.pixi is not found"
-	@echo "install_uv    -  installs uv if binary not in PATH"
 	@echo "       reset  -  removes installed files to allow starting from scratch"
 	@echo "     example  -  runs a series of examples to check functionality"
 	@echo " example_XYZ  -  runs numbered example"
@@ -19,6 +18,7 @@ install_pixi:
 		echo "Pixi already installed."; \
 	fi
 
+<<<<<<< HEAD
 install_uv:
 	@if ! command -v uv >/dev/null 2>&1; then \
 		echo "Installing uv..."; \
@@ -27,18 +27,15 @@ install_uv:
 		echo "uv already installed."; \
 	fi
 
-<<<<<<< HEAD
-quickstart: install_pixi install_uv
-	@set -e
 =======
+>>>>>>> 53de221 (no more uv)
 install:
->>>>>>> dbf78dd (fix installation and makefile (avoid pixi+uv, just pixi))
 	pixi run install
 
 minimal_example:
 	pixi run mpirun -n 4 python3 minimal_example.py
 
-quickstart: pixi_install uv_install install check_packages minimal_example
+quickstart: install_pixi install_uv install check_packages minimal_example
 	@echo "Everything seems to have run successfully!"
 
 check_packages:
@@ -46,7 +43,7 @@ check_packages:
 	pixi run python -c "import dolfinx; print('dolfinx is installed: version ' + dolfinx.__version__)"
 
 reset:
-	@echo "Removing pixi & uv environment and caches..."
+	@echo "Removing pixi environment and caches..."
 	rm -rf .pixi
 	rm -rf .venv
 	find . -type d -name "__pycache__" -exec rm -rf {} +

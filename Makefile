@@ -6,7 +6,6 @@ PIXISH := $(HOME)/.pixi
 help:
 	@echo "  quickstart  -  initialises pixi, installs dependencies, runs minimal_example.py"
 	@echo "install_pixi  -  installs pixi if ~/.pixi is not found"
-	@echo "install_uv    -  installs uv if binary not in PATH"
 	@echo "       reset  -  removes installed files to allow starting from scratch"
 	@echo "     example  -  runs a series of examples to check functionality"
 	@echo " example_XYZ  -  runs numbered example"
@@ -17,14 +16,6 @@ install_pixi:
 		curl -fsSL https://pixi.sh/install.sh | bash; \
 	else \
 		echo "Pixi already installed."; \
-	fi
-
-install_uv:
-	@if ! command -v uv >/dev/null 2>&1; then \
-		echo "Installing uv..."; \
-		curl -LsSf https://astral.sh/uv/install.sh | sh; \
-	else \
-		echo "uv already installed."; \
 	fi
 
 install:
@@ -41,7 +32,7 @@ check_packages:
 	pixi run python -c "import dolfinx; print('dolfinx is installed: version ' + dolfinx.__version__)"
 
 reset:
-	@echo "Removing pixi & uv environment and caches..."
+	@echo "Removing pixi environment and caches..."
 	rm -rf .pixi
 	rm -rf .venv
 	find . -type d -name "__pycache__" -exec rm -rf {} +
