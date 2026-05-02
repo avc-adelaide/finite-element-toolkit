@@ -4,6 +4,11 @@ SHELL := /bin/bash
 PIXISH := $(HOME)/.pixi
 
 help:
+<<<<<<< HEAD
+	@echo "install_pixi  -  installs pixi with curl if ~/.pixi is not found"
+	@echo "install_uv    -  installs uv with curl if uv binary is not on path"
+=======
+>>>>>>> 56f294d (update makefile help)
 	@echo "  quickstart  -  initialises pixi, installs dependencies, runs minimal_example.py"
 	@echo "install_pixi  -  installs pixi if ~/.pixi is not found"
 	@echo "install_uv    -  installs uv if binary not in PATH"
