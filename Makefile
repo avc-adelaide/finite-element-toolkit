@@ -27,13 +27,18 @@ install_uv:
 		echo "uv already installed."; \
 	fi
 
-quickstart: install_pixi install_uv
-	@set -e
+install:
 	pixi run install
-	pixi run python3 -c "import dolfinx; print(dolfinx.__version__)"
-	@echo "dolfinx is installed..."
+
+minimal_example:
 	pixi run mpirun -n 4 python3 minimal_example.py
+
+quickstart: install_pixi install_uv install check_packages minimal_example
 	@echo "Everything seems to have run successfully!"
+
+check_packages:
+	pixi run python -c "import gmsh; print('gmsh is installed: version ' + gmsh.__version__)"
+	pixi run python -c "import dolfinx; print('dolfinx is installed: version ' + dolfinx.__version__)"
 
 reset:
 	@echo "Removing pixi & uv environment and caches..."
@@ -45,13 +50,13 @@ example: example_000 example_001 example_002 example_003
 	@echo "It actually worked (!)"
 
 example_000:
-	pixi run uv run example_000_cadquery.py
+	pixi run python example_000_cadquery.py
 
 example_001:
-	pixi run uv run example_001_gmsh.py
+	pixi run python example_001_gmsh.py
 
 example_002:
 	pixi run mpirun -n 1 python3 example_002_mesh_fenics.py
 
 example_003:
-	pixi run uv run example_003_pyvista.py
+	pixi run python example_003_pyvista.py

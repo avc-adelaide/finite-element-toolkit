@@ -2,17 +2,11 @@
 [project]
 name = "finite-element-toolkit"
 version = "0.1"
-requires-python = "==3.13.*"
+requires-python = ">=3.12,<3.14"
 
 dependencies = [
   "matplotlib",
   "jupyter",
-  "cadquery>=2.3.0",
-  "gmsh",
-  "meshio",
-  "mpi4py",
-  "h5py>=3.16.0",
-  "pyvista>=0.47.1",
 ]
 
 [tool.setuptools]
@@ -29,8 +23,12 @@ finite-element-toolkit = { path = ".", editable = true }
 install = "uv pip install -e . --system --no-deps"
 
 [tool.pixi.dependencies]
-python = ">=3.13,<3.14"
+python = ">=3.12,<3.14"
 fenics-dolfinx = "*"
 mpich = "*"
 pyvista = "*"
-gmsh = ">=4.15.0,<5"
+python-gmsh = "*"
+cadquery = "*"
+meshio = "*"
+mpi4py = "*"
+h5py = "*"
