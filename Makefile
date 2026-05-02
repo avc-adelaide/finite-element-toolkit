@@ -28,8 +28,8 @@ install_uv:
 	fi
 
 quickstart: install_pixi install_uv
-	set -e
-	pixi run uv pip install -e . --system --no-deps
+	@set -e
+	pixi run install
 	pixi run python3 -c "import dolfinx; print(dolfinx.__version__)"
 	@echo "dolfinx is installed..."
 	pixi run mpirun -n 4 python3 minimal_example.py

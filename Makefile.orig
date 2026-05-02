@@ -4,11 +4,6 @@ SHELL := /bin/bash
 PIXISH := $(HOME)/.pixi
 
 help:
-<<<<<<< HEAD
-	@echo "install_pixi  -  installs pixi with curl if ~/.pixi is not found"
-	@echo "install_uv    -  installs uv with curl if uv binary is not on path"
-=======
->>>>>>> 56f294d (update makefile help)
 	@echo "  quickstart  -  initialises pixi, installs dependencies, runs minimal_example.py"
 	@echo "install_pixi  -  installs pixi if ~/.pixi is not found"
 	@echo "install_uv    -  installs uv if binary not in PATH"
@@ -32,9 +27,15 @@ install_uv:
 		echo "uv already installed."; \
 	fi
 
+<<<<<<< HEAD
 quickstart: install_pixi install_uv
 	set -e
 	pixi run uv pip install -e . --system --no-deps
+=======
+quickstart: pixi_install uv_install
+	@set -e
+	pixi run install
+>>>>>>> f125d2a (remove pixi.toml)
 	pixi run python3 -c "import dolfinx; print(dolfinx.__version__)"
 	@echo "dolfinx is installed..."
 	pixi run mpirun -n 4 python3 minimal_example.py
